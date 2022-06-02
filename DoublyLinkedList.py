@@ -1,26 +1,12 @@
-
-head = {
-    "value": 11,
-    "next": {
-        "value": 3,
-        "next": {
-            "value": 23,
-            "next": {
-                "value": 7,
-                "next": None
-            }
-        }
-    }
-}
-
 # Node constructor
 class Node:
     def __init__(self, value):
         self.value = value
         self.next = None
+        self.prev = None
 
 # LL constructor
-class LL:
+class DLL:
     def __init__(self, value):
         new_node = Node(value)
         self.head = new_node 
@@ -32,13 +18,14 @@ class LL:
         while temp is not None:
             print(temp.value)
             temp = temp.next
-
+    
     def append(self, value):
         new_node = Node(value)
         if self.length == 0:  # if self.head is None
             self.head = new_node
         else:
             self.tail.next = new_node
+            new_node.prev = self.tail
 
         self.tail = new_node
         self.length += 1
@@ -48,24 +35,25 @@ class LL:
         if self.length == 0:
             return None
 
+        temp = self.tail
         if self.length == 1: 
-            temp = self.head
             self.head = None
             self.tail = None
 
         else:
-            pre = self.head
-            temp = self.head
-            while(temp.next): # if it's pointing to a node
-                pre = temp
-                temp = temp.next
+            prev = temp.prev
+            self.tail = prev
 
-            self.tail = pre
             self.tail.next = None
-        
-        self.length -= 1
+            temp.prev = None
+            self.length -= 1
+            
+            if self.length == 0:
+                self.head = None
+                self.tail = None
+
         return temp.value
-        
+     
     def prepend(self, value):
         new_node = Node(value)
         if self.length == 0:
@@ -73,6 +61,7 @@ class LL:
             self.tail = new_node
         else:
             new_node.next = self.head
+            self.head.prev = new_node
             self.head = new_node
 
         self.length += 1
@@ -81,13 +70,14 @@ class LL:
     def pop_first(self):
         if self.length == 0:
             return None
+        
+        temp = self.head
         if self.length == 1:
-            temp = self.head
             self.head = None
             self.tail = None
         else:
-            temp = self.head
             self.head = self.head.next
+            self.head.prev = None
             temp.next = None
         self.length -= 1
         return temp.value       
@@ -95,11 +85,17 @@ class LL:
     def get(self, index):
         if index < 0 or index >= self.length:
             return None
-        else:
+        
+        if index < self.length/2:
             temp = self.head
             for _ in range(index):
                 temp = temp.next
-            return temp
+        else:
+            temp = self.tail
+            for _ in range(self.length - 1 - index):
+                temp = temp.prev
+        
+        return temp
 
     def set_value(self, index, value):
         temp = self.get(index)
@@ -107,7 +103,7 @@ class LL:
             temp.value = value
             return True
         return False
-
+    
     def insert(self, index, value):
         if index < 0 or index > self.length:
             return False
@@ -117,13 +113,18 @@ class LL:
             return self.append(value)
         else:
             new_node = Node(value)
-            temp = self.get(index-1)
-            post = temp.next
-            temp.next = new_node
+            prev = self.get(index-1)
+            post = prev.next
+
+            prev.next = new_node
             new_node.next = post
+
+            post.prev = new_node
+            new_node.prev = prev
+
             self.length += 1
             return True
-
+   
     def remove(self, index):
         if index < 0 or index >= self.length:
             return None
@@ -131,41 +132,34 @@ class LL:
             return self.pop_first()
         if index == self.length-1:
             return self.pop()
-        pre = self.get(index-1)
-        temp = pre.next
-        pre.next = temp.next
+
+        temp = self.get(index)
+        prev = temp.prev
+        post = temp.next
+
+        temp.prev = None
         temp.next = None
+
+        prev.next = post
+        post.prev = prev
+
         self.length -= 1
         return True
 
-    def reverse(self):
-        temp = self.head
-        self.head = self.tail # head -> tail
-        self.tail = temp      # tail -> head
-
-        after = temp.next
-        before = None
-        for _ in range(self.length):
-            after = temp.next
-            temp.next = before
-            before = temp
-            temp = after
 
 # Test
-my_LL = LL(2) #2
-my_LL.append(3) #2,3
-my_LL.append(4) #2,3,4
-
-print("pop: ", my_LL.pop())   #2,3
-my_LL.prepend(1)       #1,2,3
-print("pop 1st: ", my_LL.pop_first()) #2,3
-print("get: ", my_LL.get(0).value) #2,3
-my_LL.set_value(0,1)  #1,3
-
-my_LL.insert(2,4) #1,3,4
-my_LL.remove(0)   #3,4
-my_LL.append(1)   #3,4,1
-my_LL.reverse()   #1,4,3
+my_DLL = DLL(2) #2
+my_DLL.append(3) #2,3
+my_DLL.append(4) #2,3,4
+print("pop: ", my_DLL.pop())   #2,3
+my_DLL.prepend(1)       #1,2,3
+print("pop 1st: ", my_DLL.pop_first()) #2,3
+my_DLL.prepend(1)       #1,2,3
+print("get: ", my_DLL.get(1).value) #1,2,3
+my_DLL.set_value(1,1)  #1,1,3
+my_DLL.insert(2,4) #1,1,4,3
+my_DLL.remove(0)   #1,4,3
 
 print("Final List: ")
-my_LL.print_list() #1,4,3
+my_DLL.print_list() 
+
