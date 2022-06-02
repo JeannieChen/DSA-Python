@@ -5,7 +5,7 @@ class Node:
         self.next = None
         self.prev = None
 
-# LL constructor
+# DLL constructor
 class DLL:
     def __init__(self, value):
         new_node = Node(value)
